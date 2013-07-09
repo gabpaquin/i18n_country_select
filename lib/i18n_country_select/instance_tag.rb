@@ -7,15 +7,15 @@ module I18nCountrySelect
     end
 
     # Adapted from Rails country_select. Just uses country codes instead of full names.
-    def country_code_select(priority_countries, options, html_options)
+    def country_code_select(priority_countries, options, html_options)      
       selected = object.send(@method_name) if object.respond_to?(@method_name)
 
-      country_translations = country_translations = COUNTRY_CODES.map do |code|
+      country_translations = country_translations = COUNTRY_AREAS.map do |code, area|      
         translation = I18n.t(code, :scope => :countries, :default => 'missing')
-        translation == 'missing' ? nil : [translation, code]
+        translation == 'missing' ? nil : [translation, code, {'data-area-code' => area}]
       end.compact.sort_alphabetical_by(&:first)
 
-      countries = ""
+      countries = ""      
 
       if options[:include_blank]
         option = options[:include_blank] == true ? "" : options[:include_blank]
@@ -23,7 +23,11 @@ module I18nCountrySelect
       end
 
       if priority_countries
-        countries += options_for_select(priority_countries, selected)
+        priority_countries_translations = priority_countries.map do |code|
+          translation = I18n.t(code, :scope => :countries, :default => 'missing')
+          translation == 'missing' ? nil : [translation, code, {'data-area-code' => COUNTRY_AREAS[code]}] 
+        end.compact.sort_alphabetical_by(&:first)           
+        countries += options_for_select(priority_countries_translations, selected)
         countries += "<option value=\"\" disabled=\"disabled\">-------------</option>\n"
       end
 
